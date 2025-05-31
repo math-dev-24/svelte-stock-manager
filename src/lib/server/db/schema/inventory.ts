@@ -1,0 +1,45 @@
+import {pgTable, text} from "drizzle-orm/pg-core";
+import {product} from "./product";
+import {company} from "./company";
+
+
+export const command = pgTable('command', {
+    id: text('id').primaryKey(),
+    reference: text('reference').notNull().unique(),
+    description: text('description').notNull(),
+    statusId: text('status_id')
+        .notNull()
+        .references(() => status.id),
+    createdAt: text('createdAt').notNull()
+})
+
+export const commandLine = pgTable('commandLine', {
+    id: text('id').primaryKey(),
+    commandId: text('command_id')
+        .notNull()
+        .references(() => command.id),
+    productId: text('product_id')
+        .notNull()
+        .references(() => product.id),
+    quantity: text('quantity').notNull(),
+    createdAt: text('createdAt').notNull()
+})
+
+export const status = pgTable('status', {
+    id: text('id').primaryKey(),
+    label: text('label').notNull().unique(),
+    createdAt: text('createdAt').notNull()
+})
+
+export const inventory = pgTable('inventory', {
+    id: text('id').primaryKey(),
+    productId: text('product_id')
+        .notNull()
+        .references(() => product.id),
+    companyId: text('company_id')
+        .notNull()
+        .references(() => company.id),
+    quantity: text('quantity').notNull(),
+    createdAt: text('createdAt').notNull(),
+    updatedAt: text('updatedAt').notNull()
+});
