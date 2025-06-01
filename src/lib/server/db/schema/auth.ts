@@ -9,6 +9,9 @@ export const user = pgTable('user', {
     passwordHash: text('password_hash').notNull()
 });
 
+export type User = typeof user.$inferSelect;
+
+
 export const session = pgTable('session', {
     id: text('id').primaryKey(),
     userId: text('user_id')
@@ -16,6 +19,9 @@ export const session = pgTable('session', {
         .references(() => user.id),
     expiresAt: timestamp('expires_at').notNull()
 });
+
+export type Session = typeof session.$inferSelect;
+
 
 export const userRelations = relations(user, ({ many }) => ({
     userCompanies: many(userCompany),

@@ -10,6 +10,8 @@ export const product = pgTable('product', {
     createdAt: timestamp('createdAt').notNull()
 });
 
+export type Product = typeof product.$inferSelect;
+
 export const price = pgTable('price', {
     id: text('id').primaryKey(),
     productId: text('product_id')
@@ -18,6 +20,8 @@ export const price = pgTable('price', {
     price: numeric('price').notNull(),
     createdAt: timestamp('createdAt').notNull()
 });
+
+export type Price = typeof price.$inferSelect;
 
 export const unit = pgTable('unit', {
     id: text('id').primaryKey(),
@@ -28,11 +32,15 @@ export const unit = pgTable('unit', {
     createdAt: timestamp('createdAt').notNull()
 });
 
+export type Unit = typeof unit.$inferSelect;
+
 export const category = pgTable('category', {
     id: text('id').primaryKey(),
     label: text('label').notNull().unique(),
     createdAt: timestamp('createdAt').notNull()
 });
+
+export type Category = typeof category.$inferSelect;
 
 export const productCategory = pgTable('product_category', {
     productId: text('product_id')
@@ -46,6 +54,8 @@ export const productCategory = pgTable('product_category', {
     pk: primaryKey({ columns: [table.productId, table.categoryId] })
 }));
 
+export type ProductCategory = typeof productCategory.$inferSelect;
+
 
 export const productRelations = relations(product, ({ many }) => ({
     productCategories: many(productCategory),
@@ -54,6 +64,7 @@ export const productRelations = relations(product, ({ many }) => ({
 export const categoryRelations = relations(category, ({ many }) => ({
     productCategories: many(productCategory),
 }));
+
 
 export const productCategoryRelations = relations(productCategory, ({ one }) => ({
     product: one(product, {
@@ -65,3 +76,4 @@ export const productCategoryRelations = relations(productCategory, ({ one }) => 
         references: [category.id],
     }),
 }));
+

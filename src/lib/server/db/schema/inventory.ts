@@ -13,6 +13,8 @@ export const command = pgTable('command', {
     createdAt: text('createdAt').notNull()
 })
 
+export type Command = typeof command.$inferSelect;
+
 export const commandLine = pgTable('commandLine', {
     id: text('id').primaryKey(),
     commandId: text('command_id')
@@ -25,11 +27,15 @@ export const commandLine = pgTable('commandLine', {
     createdAt: text('createdAt').notNull()
 })
 
+export type CommandLine = typeof commandLine.$inferSelect;
+
 export const status = pgTable('status', {
     id: text('id').primaryKey(),
     label: text('label').notNull().unique(),
     createdAt: text('createdAt').notNull()
 })
+
+export type Status = typeof status.$inferSelect;
 
 export const inventory = pgTable('inventory', {
     id: text('id').primaryKey(),
@@ -43,3 +49,5 @@ export const inventory = pgTable('inventory', {
     createdAt: text('createdAt').notNull(),
     updatedAt: text('updatedAt').notNull()
 });
+
+export type Inventory = typeof inventory.$inferSelect;

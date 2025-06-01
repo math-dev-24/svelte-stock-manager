@@ -10,6 +10,9 @@ export const company = pgTable('company', {
     createdAt: timestamp('createdAt').notNull()
 });
 
+export type Company = typeof company;
+
+
 export const userCompany = pgTable('user_company', {
     userId: text('user_id')
         .notNull()
@@ -36,3 +39,4 @@ export const userCompanyRelations = relations(userCompany, ({ one }) => ({
         references: [company.id],
     }),
 }));
+
