@@ -3,12 +3,10 @@
 
     let { data }: PageProps = $props();
 
-    // Données exemple pour le dashboard
     const stats = [
-        { label: 'Produits en stock', value: '1,234', change: '+12%', trend: 'up' },
-        { label: 'Commandes en cours', value: '56', change: '+8%', trend: 'up' },
-        { label: 'Stock faible', value: '23', change: '-5%', trend: 'down' },
-        { label: 'Valeur totale', value: '€45,678', change: '+15%', trend: 'up' },
+        { label: 'Produits en stock', value: data.productsCount },
+        { label: 'Entreprises', value: data.companiesCount },
+        {label: "Commandes", value: data.commandsCount },
     ];
 
     const recentActivities = [
@@ -17,20 +15,17 @@
         { type: 'alert', message: 'Stock faible: Samsung Galaxy S24', time: 'Il y a 1h' },
         { type: 'stock', message: 'Réapprovisionnement MacBook Pro', time: 'Il y a 2h' },
     ];
+
 </script>
 
 <svelte:head>
     <title>Dashboard - Stock Manager</title>
 </svelte:head>
 
-<!-- En-tête de page -->
 <div class="mb-8">
     <h1 class="text-2xl font-bold text-slate-800 mb-2">
         Bonjour, {data.user?.username} 👋
     </h1>
-    <p class="text-slate-600">
-        Voici un aperçu de votre inventaire aujourd'hui
-    </p>
 </div>
 
 <!-- Statistiques principales -->
@@ -42,22 +37,14 @@
                     <div>
                         <p class="text-sm text-slate-600 mb-1">{stat.label}</p>
                         <p class="text-2xl font-bold text-slate-800">{stat.value}</p>
-                        <div class="flex items-center mt-2">
-                            <span class="text-sm {stat.trend === 'up' ? 'text-emerald-600' : 'text-red-600'}">
-                                {stat.trend === 'up' ? '↗' : '↘'} {stat.change}
-                            </span>
-                            <span class="text-xs text-slate-500 ml-1">vs mois dernier</span>
-                        </div>
                     </div>
                     <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                         {#if stat.label.includes('Produits')}
                             <span class="text-xl">📦</span>
                         {:else if stat.label.includes('Commandes')}
                             <span class="text-xl">📋</span>
-                        {:else if stat.label.includes('Stock')}
-                            <span class="text-xl">⚠️</span>
-                        {:else}
-                            <span class="text-xl">💰</span>
+                        {:else if stat.label.includes('Entreprises')}
+                            <span class="text-xl">🏢</span>
                         {/if}
                     </div>
                 </div>
@@ -116,11 +103,11 @@
         </div>
         <div class="card-body">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <a href="/products/new" class="btn btn-primary">
+                <a href="/products/form" class="btn btn-primary">
                     <span class="mr-2">➕</span>
                     Ajouter un produit
                 </a>
-                <a href="/commands/new" class="btn btn-secondary">
+                <a href="/commands/form" class="btn btn-warning">
                     <span class="mr-2">📋</span>
                     Nouvelle commande
                 </a>
@@ -128,7 +115,7 @@
                     <span class="mr-2">📦</span>
                     Voir le stock
                 </a>
-                <a href="/reports" class="btn btn-secondary">
+                <a href="/reports" class="btn btn-success">
                     <span class="mr-2">📊</span>
                     Rapports
                 </a>

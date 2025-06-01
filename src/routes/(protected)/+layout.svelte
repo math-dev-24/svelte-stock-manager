@@ -23,10 +23,10 @@
 
     const settingsItems = [
         { href: '/settings', icon: '⚙️', label: 'Paramètres' },
-        { href: '/profil', icon: '👤', label: 'Profil' }
+        { href: '/logs', icon: '📜', label: 'Historique' },
+        { href: '/profil', icon: '👤', label: 'Profil' },
     ];
 
-    let notificationCount = $state(3);
     let sidebarOpen = $derived(false);
 
     let activeNavItems = $derived(
@@ -44,6 +44,7 @@
         sidebarOpen = false;
     }
 </script>
+
 
 <!-- Layout Dashboard complet -->
 <div class="flex h-screen bg-slate-100">
@@ -152,21 +153,18 @@
                 </div>
 
                 <div class="flex items-center space-x-4">
-                    <!-- Actions rapides -->
-                    <button class="btn btn-ghost btn-sm">
-                        <span class="mr-2">🔔</span>
-                        <span class="hidden sm:inline">Notifications</span>
-                        {#if notificationCount > 0}
-                            <span class="ml-2 px-1.5 py-0.5 bg-red-100 text-red-700 text-xs rounded-full">
-                                {notificationCount > 99 ? '99+' : notificationCount}
-                            </span>
-                        {/if}
-                    </button>
-
-                    <a href="/products/new" class="btn btn-primary btn-sm">
+                    <a href="/products/form" class="btn btn-primary btn-sm">
                         <span class="mr-2">➕</span>
-                        <span class="hidden sm:inline">Nouveau produit</span>
-                        <span class="sm:hidden">Nouveau</span>
+                        <span class="hidden sm:inline">Produit</span>
+                        <span class="sm:hidden">Ajouter un produit</span>
+                    </a>
+                    <a
+                    href="/categories/form"
+                    class="btn btn-primary btn-sm"
+                    >
+                        <span class="mr-2">➕</span>
+                        <span class="hidden sm:inline">Catégorie</span>
+                        <span class="sm:hidden">Ajouter une catégorie</span>
                     </a>
                 </div>
             </div>

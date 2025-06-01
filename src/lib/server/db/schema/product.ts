@@ -1,5 +1,6 @@
 import {numeric, pgTable, primaryKey, text, timestamp} from "drizzle-orm/pg-core";
 import {relations} from "drizzle-orm";
+import {user} from "./auth";
 
 export const product = pgTable('product', {
     id: text('id').primaryKey(),
@@ -7,6 +8,9 @@ export const product = pgTable('product', {
     sku: text('sku').notNull().unique(),
     description: text('description').notNull(),
     minStock: numeric('min_stock').notNull(),
+    userId: text('user_id')
+        .notNull()
+        .references(() => user.id),
     createdAt: timestamp('createdAt').notNull()
 });
 
@@ -37,6 +41,9 @@ export type Unit = typeof unit.$inferSelect;
 export const category = pgTable('category', {
     id: text('id').primaryKey(),
     label: text('label').notNull().unique(),
+    userId: text('user_id')
+        .notNull()
+        .references(() => user.id),
     createdAt: timestamp('createdAt').notNull()
 });
 

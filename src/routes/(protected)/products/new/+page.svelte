@@ -1,2 +1,0 @@
-
-<h1>Products - New</h1>
