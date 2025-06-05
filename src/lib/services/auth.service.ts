@@ -45,7 +45,7 @@ export class AuthService {
                 };
             }
 
-            const validPassword = await this.checkPassword(password, existingUser.password);
+            const validPassword = await this.checkPassword(password, existingUser.passwordHash);
 
             if (!validPassword) {
                 return {
@@ -87,7 +87,7 @@ export class AuthService {
             }
 
             // check password actuel OK
-            const isValidPassword = await this.checkPassword(password, existingUser.password);
+            const isValidPassword = await this.checkPassword(password, existingUser.passwordHash);
 
 
             if (!isValidPassword) {
@@ -100,7 +100,7 @@ export class AuthService {
                 };
             }
 
-            const isSamePassword = await this.checkPassword(new_password, existingUser.password);
+            const isSamePassword = await this.checkPassword(new_password, existingUser.passwordHash);
 
             if (!isSamePassword) {
                 return {
@@ -114,7 +114,7 @@ export class AuthService {
 
             const newPasswordHash = await this.hashPassword(new_password);
 
-            const updatedUser = await db.update(table.user).set({ password: newPasswordHash }).where(eq(table.user.username, username)).returning();
+            const updatedUser = await db.update(table.user).set({ passwordHash: newPasswordHash }).where(eq(table.user.username, username)).returning();
 
             if (!updatedUser) {
                 return {
@@ -286,7 +286,7 @@ export class AuthService {
         const passwordHash = await hash(password, this.getConfigPassword());
 
         try {
-            await db.insert(table.user).values({ id: userId, username, password: passwordHash });
+            await db.insert(table.user).values({ id: userId, username, passwordHash: passwordHash });
             return userId;
         } catch (error) {
             console.error('Add user error:', error);
