@@ -32,7 +32,7 @@ export class AuthService {
         }
 
         try {
-            // Récupération de l'utilisateur
+
             const existingUser = await this.getUser(username);
 
             if (!existingUser) {
@@ -40,20 +40,19 @@ export class AuthService {
                     success: false,
                     error: {
                         code: 'AUTH_ERROR',
-                        message: 'Incorrect username or password'
+                        message: 'Invalid username or password'
                     }
                 };
             }
 
-            const tmp_password = await this.hashPassword(password);
-            const validPassword = await this.checkPassword(tmp_password, existingUser.passwordHash);
+            const validPassword = await this.checkPassword(password, existingUser.password);
 
             if (!validPassword) {
                 return {
                     success: false,
                     error: {
                         code: 'AUTH_ERROR',
-                        message: 'Incorrect username or password'
+                        message: 'Invalid username or password'
                     }
                 };
             }
@@ -86,10 +85,12 @@ export class AuthService {
                     }
                 };
             }
-            const tmp_password = await this.hashPassword(password);
-            const newPasswordHash = await this.hashPassword(new_password);
 
-            if (tmp_password == newPasswordHash) {
+            // check password actuel OK
+            const isValidPassword = await this.checkPassword(password, existingUser.password);
+
+
+            if (!isValidPassword) {
                 return {
                     success: false,
                     error: {
@@ -99,9 +100,9 @@ export class AuthService {
                 };
             }
 
-            const isValidPassword = await this.checkPassword(tmp_password, existingUser.passwordHash);
+            const isSamePassword = await this.checkPassword(new_password, existingUser.password);
 
-            if (!isValidPassword) {
+            if (!isSamePassword) {
                 return {
                     success: false,
                     error: {
@@ -111,7 +112,9 @@ export class AuthService {
                 };
             }
 
-            const updatedUser = await db.update(table.user).set({ passwordHash: newPasswordHash }).where(eq(table.user.username, username)).returning();
+            const newPasswordHash = await this.hashPassword(new_password);
+
+            const updatedUser = await db.update(table.user).set({ password: newPasswordHash }).where(eq(table.user.username, username)).returning();
 
             if (!updatedUser) {
                 return {
@@ -271,34 +274,19 @@ export class AuthService {
     }
 
     private static hashPassword(password: string): Promise<string> {
-        return hash(password, {
-            memoryCost: 19456,
-            timeCost: 2,
-            outputLen: 32,
-            parallelism: 1
-        });
+        return hash(password, this.getConfigPassword());
     }
 
-    private static async checkPassword(tmp_password: string, passwordHash: string): Promise<boolean> {
-        return await verify(passwordHash, tmp_password, {
-            memoryCost: 19456,
-            timeCost: 2,
-            outputLen: 32,
-            parallelism: 1
-        });
+    private static async checkPassword(plainPassword: string, passwordHash: string): Promise<boolean> {
+        return await verify(passwordHash, plainPassword);
     }
 
     private static async addUser(username: string, password: string): Promise<string | null> {
         const userId = nanoid();
-        const passwordHash = await hash(password, {
-            memoryCost: 19456,
-            timeCost: 2,
-            outputLen: 32,
-            parallelism: 1
-        });
+        const passwordHash = await hash(password, this.getConfigPassword());
 
         try {
-            await db.insert(table.user).values({ id: userId, username, passwordHash });
+            await db.insert(table.user).values({ id: userId, username, password: passwordHash });
             return userId;
         } catch (error) {
             console.error('Add user error:', error);
@@ -315,4 +303,12 @@ export class AuthService {
         );
     }
 
+    private static getConfigPassword(): object {
+        return {
+            memoryCost: 19456,
+            timeCost: 2,
+            outputLen: 32,
+            parallelism: 1
+        }
+    }
 }
