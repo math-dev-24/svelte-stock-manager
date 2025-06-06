@@ -4,30 +4,27 @@ import { eq } from "drizzle-orm";
 import { hash, verify } from "@node-rs/argon2";
 import { nanoid } from "nanoid";
 import type { AuthResult } from "$lib/types";
+import type { User } from "$lib/server/db/schema";
 
 export class AuthService {
 
     private static readonly MIN_USERNAME_LENGTH: number = 3;
     private static readonly MAX_USERNAME_LENGTH: number = 31;
 
-    static async login(username: string, password: string): Promise<AuthResult<typeof table.user.$inferSelect>> {
+    static async login(username: string, password: string): Promise<AuthResult<User>> {
         if (!this.validateUsername(username)) {
+            await this.failedLogin();
             return {
                 success: false,
-                error: {
-                    code: 'VALIDATION_ERROR',
-                    message: `Invalid username (min ${this.MIN_USERNAME_LENGTH}, max ${this.MAX_USERNAME_LENGTH} characters, alphanumeric only)`
-                }
+                error: `Invalid username (min ${this.MIN_USERNAME_LENGTH}, max ${this.MAX_USERNAME_LENGTH} characters, alphanumeric only)`
             };
         }
 
         if (!this.validatePasswordWithDetails(password).isValid) {
+            await this.failedLogin();
             return {
                 success: false,
-                error: {
-                    code: 'VALIDATION_ERROR',
-                    message: 'Invalid password (min 6, max 255 characters)'
-                }
+                error: 'Invalid password (min 6, max 255 characters)'
             };
         }
 
@@ -36,24 +33,20 @@ export class AuthService {
             const existingUser = await this.getUser(username);
 
             if (!existingUser) {
+                await this.failedLogin();
                 return {
                     success: false,
-                    error: {
-                        code: 'AUTH_ERROR',
-                        message: 'Invalid username or password'
-                    }
+                    error: 'Invalid username or password'
                 };
             }
 
             const validPassword = await this.checkPassword(password, existingUser.passwordHash);
 
             if (!validPassword) {
+                await this.failedLogin();
                 return {
                     success: false,
-                    error: {
-                        code: 'AUTH_ERROR',
-                        message: 'Invalid username or password'
-                    }
+                    error: 'Invalid username or password'
                 };
             }
 
@@ -63,26 +56,21 @@ export class AuthService {
             };
         } catch (error) {
             console.error('Login error:', error);
+            await this.failedLogin();
             return {
                 success: false,
-                error: {
-                    code: 'SERVER_ERROR',
-                    message: 'An error occurred during login'
-                }
+                error: 'An error occurred during login'
             };
         }
     }
 
-    static async updateProfile(username: string, password: string, new_password: string): Promise<AuthResult<typeof table.user.$inferSelect>> {
+    static async updateProfile(username: string, password: string, new_password: string): Promise<AuthResult<User>> {
         try {
             const existingUser = await this.getUser(username);
             if (!existingUser) {
                 return {
                     success: false,
-                    error: {
-                        code: 'AUTH_ERROR',
-                        message: 'Incorrect username or password'
-                    }
+                    error: 'Incorrect username or password'
                 };
             }
 
@@ -93,10 +81,7 @@ export class AuthService {
             if (!isValidPassword) {
                 return {
                     success: false,
-                    error: {
-                        code: 'VALIDATION_ERROR',
-                        message: 'New password must be different from the current password'
-                    }
+                    error: 'New password must be different from the current password'
                 };
             }
 
@@ -105,10 +90,7 @@ export class AuthService {
             if (!isSamePassword) {
                 return {
                     success: false,
-                    error: {
-                        code: 'AUTH_ERROR',
-                        message: 'Incorrect password'
-                    }
+                    error: 'Incorrect password'
                 };
             }
 
@@ -119,24 +101,18 @@ export class AuthService {
             if (!updatedUser) {
                 return {
                     success: false,
-                    error: {
-                        code: 'SERVER_ERROR',
-                        message: 'Failed to update profile'
-                    }
+                    error: 'Failed to update profile'
                 };
             }
 
             return {
                 success: true,
-                data: updatedUser.at(0) as typeof table.user.$inferSelect
+                data: updatedUser.at(0) as User
             };
         } catch  {
             return {
                 success: false,
-                error: {
-                    code: 'SERVER_ERROR',
-                    message: 'An error occurred during update profile'
-                }
+                error: 'An error occurred during update profile'
             };
         }
     }
@@ -145,20 +121,14 @@ export class AuthService {
         if (!this.validateUsername(username)) {
             return {
                 success: false,
-                error: {
-                    code: 'VALIDATION_ERROR',
-                    message: 'Invalid username (min 3, max 31 characters, alphanumeric only)'
-                }
+                error: 'Invalid username (min 3, max 31 characters, alphanumeric only)'
             };
         }
 
         if (!this.validatePasswordWithDetails(password).isValid) {
             return {
                 success: false,
-                error: {
-                    code: 'VALIDATION_ERROR',
-                    message: 'Invalid password (min 6, max 255 characters)'
-                }
+                error: 'Invalid password (min 6, max 255 characters)'
             };
         }
 
@@ -167,10 +137,7 @@ export class AuthService {
             if (existingUser) {
                 return {
                     success: false,
-                    error: {
-                        code: 'VALIDATION_ERROR',
-                        message: 'Username already taken'
-                    }
+                    error: 'Username already taken'
                 };
             }
 
@@ -178,10 +145,7 @@ export class AuthService {
             if (!userId) {
                 return {
                     success: false,
-                    error: {
-                        code: 'SERVER_ERROR',
-                        message: 'Failed to create user'
-                    }
+                    error: 'Failed to create user'
                 };
             }
 
@@ -189,19 +153,15 @@ export class AuthService {
                 success: true,
                 data: userId
             };
-        } catch (error) {
-            console.error('Registration error:', error);
+        } catch {
             return {
                 success: false,
-                error: {
-                    code: 'SERVER_ERROR',
-                    message: 'An error occurred during registration'
-                }
+                error: 'An error occurred during registration'
             };
         }
     }
 
-    static async getUser(username: string): Promise<typeof table.user.$inferSelect | null> {
+    static async getUser(username: string): Promise<User | null> {
         try {
             const results = await db.select().from(table.user).where(eq(table.user.username, username));
             return results.at(0) || null;
@@ -310,5 +270,11 @@ export class AuthService {
             outputLen: 32,
             parallelism: 1
         }
+    }
+
+    private static async failedLogin() : Promise<void> {
+        setTimeout(() => {
+            return;
+        }, 2000);
     }
 }

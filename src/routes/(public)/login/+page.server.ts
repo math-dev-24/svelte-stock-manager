@@ -4,18 +4,29 @@ import type { Actions, PageServerLoad } from './$types';
 import { AuthService } from "$lib/services/auth.service";
 import {FlashService} from "$lib/services";
 
-export const load: PageServerLoad = async (event) => {
-	if (event.locals.user) {
-		return redirect(302, '/');
+
+function isValidRedirectUrl(url: string): boolean {
+	return url.startsWith('/') && !url.startsWith('//');
+}
+
+export const load: PageServerLoad = async ({locals, url}) => {
+	if (locals.user) {
+		const from = url.searchParams.get('from');
+		const redirectTo = (from && isValidRedirectUrl(from)) ? from : '/';
+		throw redirect(302, redirectTo);
 	}
-	return {};
+	return {
+		from: url.searchParams.get('from') || '/'
+	};
 };
 
 export const actions: Actions = {
 	default: async (event) => {
 		const formData = await event.request.formData();
+		console.log(formData);
 		const username = formData.get('username');
 		const password = formData.get('password');
+		const from = formData.get('from')?.toString() || '/'; // ← Récupérer le paramètre 'from'
 
 		if (!username || !password || typeof username !== 'string' || typeof password !== 'string') {
 			return fail(400, { message: 'Missing username or password', type: 'error' });
@@ -25,7 +36,7 @@ export const actions: Actions = {
 
 		if (!loginResult.success) {
 			return fail(400, {
-				message: loginResult.error?.message || 'Login failed',
+				message: loginResult.error || 'Login failed',
 				type: 'error'
 			});
 		}
@@ -38,6 +49,7 @@ export const actions: Actions = {
 
 		FlashService.success(event, 'Vous êtes maintenant connecté !');
 
-		return redirect(302, '/');
+		const redirectTo = isValidRedirectUrl(from) ? from : '/';
+		return redirect(302, redirectTo);
 	}
 };

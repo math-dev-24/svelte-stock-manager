@@ -1,8 +1,7 @@
-export interface AuthResult<T> {
-    success: boolean;
-    data?: T;
-    error?: {
-        code: 'VALIDATION_ERROR' | 'AUTH_ERROR' | 'SERVER_ERROR';
-        message: string;
-    };
+export type AuthResult<T> = {
+    success: true;
+    data: T;
+} | {
+    success: false;
+    error: string;
 }

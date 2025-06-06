@@ -1,5 +1,6 @@
 <script lang="ts">
     import type {PageProps} from './$types';
+    import CategoryCard from '$lib/components/protected/category/category-card.svelte';
 
     let { data }: PageProps = $props();
 
@@ -21,9 +22,7 @@
     {:else}
         <div class="grid grid-cols-3 gap-2">
             {#each data.categories as category (category.id)}
-                <div>
-                    <pre>{JSON.stringify(category, null, 2)}</pre>
-                </div>
+                <CategoryCard {category} />
             {/each}
         </div>
     {/if}

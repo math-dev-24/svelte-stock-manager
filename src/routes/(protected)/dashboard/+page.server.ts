@@ -1,6 +1,6 @@
 import type {PageServerLoad} from './$types';
 import {redirect} from "@sveltejs/kit";
-import {CompanyService, ProductService, CommandService} from "$lib/services";
+import {CompanyService, ProductService, CommandService, CategoryService} from "$lib/services";
 
 export const load: PageServerLoad = async (event) => {
 	if (!event.locals.user) {
@@ -10,6 +10,7 @@ export const load: PageServerLoad = async (event) => {
 	return {
 		productsCount : await ProductService.countProducts(),
 		companiesCount: await CompanyService.countCompaniesByUserId(event.locals.user.id),
-		commandsCount: await CommandService.countCommands()
+		commandsCount: await CommandService.countCommands(),
+		categoriesCount: await CategoryService.countCategoriesByUserId(event.locals.user.id)
 	}
 };

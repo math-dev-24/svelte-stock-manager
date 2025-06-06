@@ -8,4 +8,4 @@ export type ServerResponse<T>  = {
     message: string;
 }
 
-export type Code = 'VALIDATION_ERROR' | 'SERVER_ERROR';
+export type Code = 'VALIDATION_ERROR' | 'SERVER_ERROR' | 'NOT_FOUND' | 'ALREADY_EXISTS';

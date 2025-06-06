@@ -1,6 +1,12 @@
 <script lang="ts">
     import type {PageProps} from './$types';
     import {page} from "$app/state";
+    import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "$lib/components/ui/card";
+    import { Button } from "$lib/components/ui/button";
+    import { Input } from "$lib/components/ui/input";
+    import { Textarea } from "$lib/components/ui/textarea";
+    import { Label } from "$lib/components/ui/label";
+    import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "$lib/components/ui/select";
 
     let { data }: PageProps = $props();
 
@@ -12,101 +18,115 @@
         name: data.product?.name || '',
         sku: data.product?.sku || '',
         description: data.product?.description || '',
-        minStock: data.product?.minStock || 0
+        minStock: data.product?.minStock || 0,
+        categories: data.productCategories?.map(c => c.id) || []
     });
-
 </script>
 
-
 {#if data.mode === 'delete'}
-    <section class="container mx-auto px-4 py-8 max-w-2xl rounded border border-slate-200 bg-white shadow-sm">
-        <h1 class="text-2xl font-bold text-slate-800 mb-6">
-            Suppression du produit :
-        </h1>
-
-        <p class="text-slate-600 mb-1">
-            Voulez-vous vraiment supprimer le produit suivant <b>"{data.product.name}"</b> ?
-        </p>
-
-        <form
-                class="space-y-6"
+    <Card class="max-w-2xl mx-auto">
+        <CardHeader>
+            <CardTitle>Vous allez supprimer le produit suivant :</CardTitle>
+        </CardHeader>
+        <CardContent>
+            <p class="text-muted-foreground mb-4">
+                Voulez-vous vraiment supprimer le produit suivant <b>"{data.product.name}"</b> ?
+            </p>
+        </CardContent>
+        <CardFooter>
+            <form
+                class="w-full"
                 method="POST"
                 action="?/delete"
-        >
-            <input type="hidden" name="id" id="id" value={data.product.id} />
-            <button
-                    class="btn btn-danger w-full"
             >
-                Supprimer
-            </button>
-        </form>
-    </section>
+                <input type="hidden" name="id" id="id" value={data.product.id} />
+                <Button variant="destructive" type="submit" class="w-full">
+                    Supprimer
+                </Button>
+            </form>
+        </CardFooter>
+    </Card>
 {:else}
-
-    <section class="container mx-auto px-4 py-8 max-w-2xl rounded border border-slate-200 bg-white shadow-sm">
-        <h1 class="text-2xl font-bold text-slate-800 mb-6">
-            {formTitle} :
-        </h1>
-
-        <form
+    <Card class="max-w-2xl mx-auto">
+        <CardHeader>
+            <CardTitle>{formTitle}</CardTitle>
+        </CardHeader>
+        <CardContent>
+            <form
                 class="space-y-6"
                 method="POST"
                 action={isUpdateMode ? '?/update' : '?/create'}
-        >
+            >
+                {#if data.product}
+                    <input type="hidden" name="id" id="id" value={data.product.id} />
+                {/if}
 
-            {#if data.product}
-                <input type="hidden" name="id" id="id" value={data.product.id} />
-            {/if}
-
-            <div class="form-group">
-                <label for="name">Nom du produit <span class="text-red-500">*</span></label>
-                <input
+                <div class="space-y-2">
+                    <Label for="name">Nom du produit <span class="text-destructive">*</span></Label>
+                    <Input
                         type="text"
                         id="name"
                         name="name"
                         required
                         bind:value={defaultValues.name}
-                />
-            </div>
+                    />
+                </div>
 
-            <div class="form-group">
-                <label for="sku">SKU <span class="text-red-500">*</span></label>
-                <input
+                <div class="space-y-2">
+                    <Label for="sku">SKU <span class="text-destructive">*</span></Label>
+                    <Input
                         type="text"
                         id="sku"
                         name="sku"
                         required
                         bind:value={defaultValues.sku}
-                />
-            </div>
+                    />
+                </div>
 
-            <div class="form-group">
-                <label for="description">Description <span class="text-red-500">*</span></label>
-                <textarea
+                <div class="space-y-2">
+                    <Label for="description">Description <span class="text-destructive">*</span></Label>
+                    <Textarea
                         id="description"
                         name="description"
                         required
                         bind:value={defaultValues.description}
-                ></textarea>
-            </div>
+                    />
+                </div>
 
-            <div class="form-group">
-                <label for="minStock">Stock minimum <span class="text-red-500">*</span></label>
-                <input
+                <div class="space-y-2">
+                    <Label for="minStock">Stock minimum <span class="text-destructive">*</span></Label>
+                    <Input
                         type="number"
                         id="minStock"
                         name="minStock"
                         required
                         bind:value={defaultValues.minStock}
-                />
-            </div>
+                    />
+                </div>
 
-            <button
-                    class="btn btn-primary w-full"
-            >
-                {submitButtonText}
-            </button>
+                <div class="space-y-2">
+                    <Label for="categories">Catégories</Label>
+                    <Select
+                        id="categories"
+                        name="categories"
+                        multiple
+                        bind:value={defaultValues.categories}
+                    >
+                        <SelectTrigger>
+                            <SelectValue placeholder="Sélectionner des catégories" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {#each data.categories as category}
+                                <SelectItem value={category.id}>{category.label}</SelectItem>
+                            {/each}
+                        </SelectContent>
+                    </Select>
+                </div>
 
-        </form>
-    </section>
+                <Button type="submit" class="w-full">
+                    {submitButtonText}
+                </Button>
+            </form>
+        </CardContent>
+    </Card>
 {/if}

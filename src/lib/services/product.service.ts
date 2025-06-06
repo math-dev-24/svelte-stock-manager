@@ -5,6 +5,7 @@ import type {ServerResponse} from "$lib/types/server.type";
 import {nanoid} from "nanoid";
 import {count, eq} from "drizzle-orm";
 import {LogService} from "$lib/services/log.service";
+import type {Category} from "$lib/server/db/schema";
 
 
 export class ProductService {
@@ -12,9 +13,20 @@ export class ProductService {
     static async getProducts(): Promise<ServerResponse<Product[]>> {
         try {
             const results = await db.select().from(table.product);
+            
+            const productsWithCategories = await Promise.all(
+                results.map(async (product) => {
+                    const categories = await this.getProductCategories(product.id);
+                    return {
+                        ...product,
+                        categories: categories.success ? categories.data : []
+                    };
+                })
+            );
+
             return {
                 success: true,
-                data: results
+                data: productsWithCategories
             };
         } catch {
             return {
@@ -188,6 +200,56 @@ export class ProductService {
             return updatedProducts[0] as Product;
         } catch {
             return null
+        }
+    }
+
+    static async getProductCategories(productId: string): Promise<ServerResponse<Category[]>> {
+        try {
+            const results = await db
+                .select({
+                    category: table.category
+                })
+                .from(table.productCategory)
+                .innerJoin(table.category, eq(table.productCategory.categoryId, table.category.id))
+                .where(eq(table.productCategory.productId, productId));
+
+            return {
+                success: true,
+                data: results.map(r => r.category)
+            };
+        } catch {
+            return {
+                success: false,
+                errorCode: 'SERVER_ERROR',
+                message: 'An error occurred during get product categories'
+            };
+        }
+    }
+
+    static async updateProductCategories(productId: string, categoryIds: string[]): Promise<ServerResponse<void>> {
+        try {
+            await db.delete(table.productCategory).where(eq(table.productCategory.productId, productId));
+
+            if (categoryIds.length > 0) {
+                const productCategories = categoryIds.map(categoryId => ({
+                    productId,
+                    categoryId,
+                    createdAt: new Date()
+                }));
+
+                await db.insert(table.productCategory).values(productCategories);
+            }
+
+            return {
+                success: true,
+                data: undefined
+            };
+        } catch {
+            return {
+                success: false,
+                errorCode: 'SERVER_ERROR',
+                message: 'An error occurred during update product categories'
+            };
         }
     }
 }

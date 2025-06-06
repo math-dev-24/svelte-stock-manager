@@ -1,7 +1,9 @@
 <script lang="ts">
     import { page } from '$app/state';
-
-    interface BreadcrumbItem {
+    import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator } from "$lib/components/ui/breadcrumb";
+    import { HomeIcon } from "lucide-svelte";
+    
+    interface BreadcrumbItemType {
         label: string;
         href?: string;
         icon?: string;
@@ -9,7 +11,7 @@
 
     interface Props {
         customTitle?: string;
-        customItems?: BreadcrumbItem[];
+        customItems?: BreadcrumbItemType[];
         showIcons?: boolean;
         separator?: string;
     }
@@ -22,7 +24,7 @@
     }: Props = $props();
 
     // Configuration des routes et leurs breadcrumbs
-    const routeConfig: Record<string, { title: string; items: BreadcrumbItem[] }> = {
+    const routeConfig: Record<string, { title: string; items: BreadcrumbItemType[] }> = {
         '/dashboard': {
             title: 'Dashboard',
             items: [
@@ -117,46 +119,26 @@
     let items = $derived(customItems || currentRoute.items);
 </script>
 
-<div class="flex items-center justify-center space-x-4">
-
-    <nav class="flex items-center text-sm text-slate-500" aria-label="Breadcrumb">
-        <ol class="flex items-center space-x-2">
-            {#each items as item, index (item.label)}
-                <li class="flex items-center">
-                    {#if index > 0}
-                        <span class="mx-2 text-slate-400" aria-hidden="true">
-                            {separator}
+<Breadcrumb>
+    <BreadcrumbList>
+        <BreadcrumbItem>
+            <BreadcrumbLink href="/dashboard" class="flex items-center gap-1">
+                <HomeIcon class="w-4 h-4" />
+                Accueil
+            </BreadcrumbLink>
+        </BreadcrumbItem>
+        {#each items as item, index (index)}
+            <BreadcrumbItem>
+                <BreadcrumbSeparator />
+                <BreadcrumbLink href={item.href}>
+                    {#if showIcons && item.icon}
+                        <span class="mr-1 text-xs" aria-hidden="true">
+                            {item.icon}
                         </span>
                     {/if}
-
-                    {#if item.href}
-                        <a
-                                href={item.href}
-                                class="flex items-center hover:text-slate-700 transition-colors duration-200"
-                                aria-label="Aller à {item.label}"
-                        >
-                            {#if showIcons && item.icon}
-                                <span class="mr-1 text-xs" aria-hidden="true">
-                                    {item.icon}
-                                </span>
-                            {/if}
-                            {item.label}
-                        </a>
-                    {:else}
-                        <span
-                                class="flex items-center text-slate-700 font-medium"
-                                aria-current="page"
-                        >
-                            {#if showIcons && item.icon}
-                                <span class="mr-1 text-xs" aria-hidden="true">
-                                    {item.icon}
-                                </span>
-                            {/if}
-                            {item.label}
-                        </span>
-                    {/if}
-                </li>
-            {/each}
-        </ol>
-    </nav>
-</div>
+                    {item.label}
+                </BreadcrumbLink>
+            </BreadcrumbItem>
+        {/each}
+    </BreadcrumbList>
+</Breadcrumb>

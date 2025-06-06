@@ -24,9 +24,8 @@ export const actions: Actions = {
 		const registerResult = await AuthService.register(username, password);
 
 		if (!registerResult.success) {
-			const statusCode = registerResult.error?.code === 'VALIDATION_ERROR' ? 400 : 500;
-			return fail(statusCode, {
-				message: registerResult.error?.message || 'Registration failed',
+			return fail(400, {
+				message: registerResult.error || 'Registration failed',
 				type: 'error'
 			});
 		}

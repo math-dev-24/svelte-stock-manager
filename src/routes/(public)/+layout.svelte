@@ -1,5 +1,6 @@
 <script lang="ts">
     import type { LayoutProps } from './$types';
+    import { Button } from "$lib/components/ui/button";
 
     let {children, data}: LayoutProps = $props();
 </script>
@@ -30,27 +31,27 @@
                         <span class="text-sm text-slate-600">
                             Bonjour, {data.user.username}
                         </span>
-                        <a href="/dashboard" class="btn btn-primary btn-sm">
+                        <Button href="/dashboard" variant="outline">
                             Dashboard
-                        </a>
+                        </Button>
                         <form action="/logout" method="POST" class="inline">
-                            <button type="submit" class="btn btn-ghost btn-sm">
+                            <Button type="submit" variant="destructive">
                                 Déconnexion
-                            </button>
+                            </Button>
                         </form>
                     {:else}
-                        <a href="/features" class="text-slate-600 hover:text-slate-800 font-medium transition-colors">
+                        <Button href="/features" variant="link">
                             Fonctionnalités
-                        </a>
-                        <a href="/pricing" class="text-slate-600 hover:text-slate-800 font-medium transition-colors">
+                        </Button>
+                        <Button href="/pricing" variant="link">
                             Prix
-                        </a>
-                        <a href="/login" class="btn btn-ghost btn-sm">
+                        </Button>
+                        <Button href="/login" variant="secondary">
                             Connexion
-                        </a>
-                        <a href="/register" class="btn btn-primary btn-sm">
+                        </Button>
+                        <Button href="/register" variant="outline">
                             S'inscrire
-                        </a>
+                        </Button>
                     {/if}
                 </div>
             </div>
