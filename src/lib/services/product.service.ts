@@ -57,12 +57,20 @@ export class ProductService {
         }
     }
 
-    static async countProducts(): Promise<number> {
+    static async countProducts(): Promise<ServerResponse<number>> {
         try {
             const results = await db.select({ count: count() }).from(table.product);
-            return results[0].count;
+            return {
+                success: true,
+                data: results[0].count,
+                message: "Nombre de produits récupéré avec succès"
+            };
         } catch {
-            return 0;
+            return {
+                success: false,
+                errorCode: 'SERVER_ERROR',
+                message: 'An error occurred during get products count'
+            };
         }
     }
 

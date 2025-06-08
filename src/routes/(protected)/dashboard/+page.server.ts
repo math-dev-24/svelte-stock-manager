@@ -7,10 +7,15 @@ export const load: PageServerLoad = async (event) => {
 		throw redirect(302, '/login');
 	}
 
+	const companiesCount = (await CompanyService.countCompaniesByUserId(event.locals.user.id));
+	const commandsCount = (await CommandService.countCommands());
+	const productsCount = (await ProductService.countProducts());
+	const categoriesCount = (await CategoryService.countCategoriesByUserId(event.locals.user.id));
+
 	return {
-		productsCount : await ProductService.countProducts(),
-		companiesCount: await CompanyService.countCompaniesByUserId(event.locals.user.id),
-		commandsCount: await CommandService.countCommands(),
-		categoriesCount: await CategoryService.countCategoriesByUserId(event.locals.user.id)
+		productsCount: productsCount.success ? productsCount.data : "N/A",
+		companiesCount: companiesCount.success ? companiesCount.data : "N/A",
+		commandsCount: commandsCount.success ? commandsCount.data : "N/A",
+		categoriesCount: categoriesCount.success ? categoriesCount.data : "N/A"
 	}
 };

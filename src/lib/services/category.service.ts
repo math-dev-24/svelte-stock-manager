@@ -119,8 +119,20 @@ export class CategoryService {
         }
     }
 
-    static async countCategoriesByUserId(userId: string): Promise<number> {
-        const categories = await db.select().from(table.category).where(eq(table.category.userId, userId));
-        return categories.length;
+    static async countCategoriesByUserId(userId: string): Promise<ServerResponse<number>> {
+        try {
+            const categories = await db.select().from(table.category).where(eq(table.category.userId, userId));
+            return {
+                success: true,
+                data: categories.length,
+                message: "Nombre de catégories récupéré avec succès"
+            };
+        } catch {
+            return {
+                success: false,
+                errorCode: 'SERVER_ERROR',
+                message: 'An error occurred during get categories count'
+            };
+        }
     }
 }

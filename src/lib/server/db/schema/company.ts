@@ -10,19 +10,14 @@ export const company = pgTable('company', {
     createdAt: timestamp('createdAt').notNull()
 });
 
-export type Company = typeof company;
-
+export type Company = typeof company.$inferSelect;
 
 export const userCompany = pgTable('user_company', {
-    userId: text('user_id')
-        .notNull()
-        .references(() => user.id),
-    companyId: text('company_id')
-        .notNull()
-        .references(() => company.id),
+    userId: text('user_id').notNull().references(() => user.id),
+    companyId: text('company_id').notNull().references(() => company.id),
     createdAt: timestamp('createdAt').notNull()
 }, (table) => ({
-    pk: primaryKey({ columns: [table.userId, table.companyId] })
+    pk: primaryKey(table.userId, table.companyId)
 }));
 
 export const companyRelations = relations(company, ({ many }) => ({

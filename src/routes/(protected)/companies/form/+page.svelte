@@ -1,29 +1,46 @@
 <script lang="ts">
     import type {PageProps} from './$types';
     import {page} from "$app/state";
+    import {Card, CardContent, CardHeader, CardTitle, CardFooter} from "$lib/components/ui/card";
+    import { Alert } from '$lib/components/ui/alert';
+    import {Button} from "$lib/components/ui/button";
+    import {Input} from "$lib/components/ui/input";
+    import {Label} from "$lib/components/ui/label";
+    import {enhance} from "$app/forms";
 
     let { data, form }: PageProps = $props();
 
+
+    let isLoading = $state(false);
     const isUpdateMode = $derived(page.url.searchParams.get('type') === 'update' && data.company);
     const formTitle = $derived(isUpdateMode ? 'Modifier l\'entreprise :' : 'Nouveau l\'entreprise :');
-    const submitButtonText = $derived(isUpdateMode ? 'Mettre à jour' : 'Créer');
+    const submitButtonText = $derived(isUpdateMode ? 'Mettre à jour' : 'Créer l\'entreprise');
 
 </script>
 
-<section class="container mx-auto px-4 py-8 max-w-2xl rounded border border-slate-200 bg-white shadow-sm">
-    <h1 class="text-2xl font-bold text-slate-800 mb-6">
-        {formTitle}
-    </h1>
-
-    <form
+<Card>
+    <CardHeader>
+        <CardTitle>
+            {formTitle}
+        </CardTitle>
+    </CardHeader>
+    <CardContent>
+        <form
             class="space-y-6"
             method="POST"
             action={isUpdateMode ? '?/update' : '?/create'}
+            use:enhance={() => {
+                isLoading = true;
+                return async ({update}) => {
+                    await update();
+                    isLoading = false;
+                }
+            }}
     >
 
         <div class="form-group">
-            <label for="name">Nom de l'entreprise <span class="text-red-500">*</span></label>
-            <input
+            <Label for="name">Nom de l'entreprise <span class="text-red-500">*</span></Label>
+            <Input
                     type="text"
                     id="name"
                     name="name"
@@ -32,8 +49,8 @@
         </div>
 
         <div class="form-group">
-            <label for="email">Email <span class="text-red-500">*</span></label>
-            <input
+            <Label for="email">Email <span class="text-red-500">*</span></Label>
+            <Input
                     type="email"
                     id="email"
                     name="email"
@@ -42,8 +59,8 @@
         </div>
 
         <div class="form-group">
-            <label for="phone">Téléphone <span class="text-red-500">*</span></label>
-            <input
+            <Label for="phone">Téléphone <span class="text-red-500">*</span></Label>
+            <Input
                     type="tel"
                     id="phone"
                     name="phone"
@@ -51,16 +68,18 @@
             />
         </div>
 
-        <button
-                class="btn btn-primary w-full"
+        <Button
+            type="submit"
+            disabled={isLoading}
         >
-            {submitButtonText}
-        </button>
+            {isLoading ? 'En cours...' : submitButtonText}
+        </Button>
 
     </form>
-
-    {#if form?.message}
-        <div class={`callout callout-${form.type}`}>{form.message}</div>
-    {/if}
-
-</section>
+    </CardContent>
+    <CardFooter>
+        {#if form?.message}
+            <Alert variant="destructive">{form.message}</Alert>
+        {/if}
+    </CardFooter>
+</Card>
