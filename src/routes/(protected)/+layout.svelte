@@ -18,6 +18,7 @@
         Menu,
         X
     } from 'lucide-svelte';
+    import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "$lib/components/ui/select";
 
     let { children, data }: LayoutProps = $props();
 
@@ -79,8 +80,17 @@
         <div class="p-6 border-b border-border">
             <h1 class="text-xl font-bold text-foreground flex items-center">
                 <Package class="w-6 h-6" />
-                <span class="ml-2">Stock Fast</span>
+                <span class="ml-2">Stock Fast</span>    
             </h1>
+            {#if data.selectedCompany}
+                <div class="text-sm text-muted-foreground mt-1">
+                    { data.selectedCompany.name }
+                </div>
+            {:else}
+                <div class="text-sm text-muted-foreground mt-1">
+                    Aucune entreprise sélectionnée
+                </div>
+            {/if}
         </div>
 
         <!-- Navigation principale -->
@@ -167,7 +177,6 @@
                         {/if}
                     </button>
 
-                    <!-- Breadcrumb Component -->
                     <Breadcrumb />
                 </div>
 

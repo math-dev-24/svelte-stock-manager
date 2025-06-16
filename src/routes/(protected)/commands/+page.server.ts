@@ -1,5 +1,4 @@
 import type {PageServerLoad} from './$types';
-import {CommandService} from "$lib/services";
 import {redirect} from "@sveltejs/kit";
 
 export const load: PageServerLoad = async (event) => {
@@ -8,6 +7,6 @@ export const load: PageServerLoad = async (event) => {
 	}
 
 	return {
-		commands: (await CommandService.getCommandsByUserId(event.locals.user.id)).data
+		commands: []
 	}
 };

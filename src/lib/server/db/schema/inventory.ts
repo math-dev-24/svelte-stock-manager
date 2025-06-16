@@ -1,7 +1,7 @@
 import {pgTable, text} from "drizzle-orm/pg-core";
 import {product} from "./product";
 import {company} from "./company";
-
+import {relations} from "drizzle-orm";
 
 export const command = pgTable('command', {
     id: text('id').primaryKey(),
@@ -10,8 +10,23 @@ export const command = pgTable('command', {
     statusId: text('status_id')
         .notNull()
         .references(() => status.id),
+    companyId: text('company_id')
+        .notNull()
+        .references(() => company.id),
     createdAt: text('createdAt').notNull()
 })
+
+export const commandRelations = relations(command, ({ many, one }) => ({
+    commandLines: many(commandLine),
+    status: one(status, {
+        fields: [command.statusId],
+        references: [status.id],
+    }),
+    company: one(company, {
+        fields: [command.companyId],
+        references: [company.id],
+    })
+}));
 
 export type Command = typeof command.$inferSelect;
 
@@ -26,6 +41,17 @@ export const commandLine = pgTable('commandLine', {
     quantity: text('quantity').notNull(),
     createdAt: text('createdAt').notNull()
 })
+
+export const commandLineRelations = relations(commandLine, ({ one }) => ({
+    command: one(command, {
+        fields: [commandLine.commandId],
+        references: [command.id],
+    }),
+    product: one(product, {
+        fields: [commandLine.productId],
+        references: [product.id],
+    })
+}));
 
 export type CommandLine = typeof commandLine.$inferSelect;
 

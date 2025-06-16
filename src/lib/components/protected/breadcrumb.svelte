@@ -121,15 +121,11 @@
 
 <Breadcrumb>
     <BreadcrumbList>
-        <BreadcrumbItem>
-            <BreadcrumbLink href="/dashboard" class="flex items-center gap-1">
-                <HomeIcon class="w-4 h-4" />
-                Accueil
-            </BreadcrumbLink>
-        </BreadcrumbItem>
         {#each items as item, index (index)}
             <BreadcrumbItem>
-                <BreadcrumbSeparator />
+                {#if index !== 0}
+                    <BreadcrumbSeparator />
+                {/if}
                 <BreadcrumbLink href={item.href}>
                     {#if showIcons && item.icon}
                         <span class="mr-1 text-xs" aria-hidden="true">

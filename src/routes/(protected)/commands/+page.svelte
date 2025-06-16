@@ -1,5 +1,7 @@
 <script lang="ts">
     import type {PageProps} from './$types';
+    import {Button} from "$lib/components/ui/button";
+    import { PlusIcon } from "lucide-svelte";
 
     let { data }: PageProps = $props();
 
@@ -12,15 +14,16 @@
         <p class="text-slate-600 mb-2">
             Vous n'avez pas encore ajouté de commande.
         </p>
-        <a
-                href="/commands/form"
-                class="btn btn-primary w-full"
+        <Button
+            class="btn btn-primary w-full flex items-center gap-2 w-1/4 mx-auto"
+            href="/commands/form"
         >
+            <PlusIcon class="w-4 h-4" />
             Ajouter une commande
-        </a>
+        </Button>
     {:else}
         <div class="grid grid-cols-3 gap-2">
-            {#each data.commands as command (command.id)}
+            {#each data.commands as command, index (index)}
                 <div>
                     <pre>{JSON.stringify(command, null, 2)}</pre>
                 </div>

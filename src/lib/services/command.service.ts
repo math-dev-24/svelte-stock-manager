@@ -2,6 +2,9 @@ import {db} from "$lib/server/db";
 import * as table from "$lib/server/db/schema";
 import {count} from "drizzle-orm";
 import type {ServerResponse} from "$lib/types/server.type";
+import type { Command } from "$lib/server/db/schema/inventory";
+import { eq } from "drizzle-orm";
+
 
 
 
@@ -24,13 +27,24 @@ export class CommandService {
         }
     }
 
-    static async getCommandsByUserId(userId: string): Promise<ServerResponse<string[]>> {
+    static async getCommandsByCompanyId(companyId: string): Promise<ServerResponse<Command[]>> {
         try {
-            console.log(userId);
+            const commands = await db.query.command.findMany({
+                where: eq(table.command.companyId, companyId),
+                with: {
+                    commandLines: {
+                        with: {
+                            product: true
+                        }
+                    },
+                    status: true,
+                    company: true
+                }
+            });
 
             return {
                 success: true,
-                data: []
+                data: commands
             };
 
         } catch {
@@ -41,4 +55,23 @@ export class CommandService {
             };
         }
     }
+
+    static async createCommand(command: Command): Promise<ServerResponse<Command>> {
+        try {
+            const newCommand = await db.insert(table.command).values(command).returning();
+
+            return {
+                success: true,
+                data: newCommand[0],
+                message: 'Commande créée avec succès'
+            };
+        } catch {
+            return {
+                success: false,
+                errorCode: 'SERVER_ERROR',
+                message: 'An error occurred during create command'
+            };
+        }
+    }
+
 }

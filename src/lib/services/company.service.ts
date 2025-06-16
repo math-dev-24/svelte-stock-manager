@@ -2,8 +2,22 @@ import type {ServerResponse} from "$lib/types/server.type";
 import {db} from "$lib/server/db";
 import {company, userCompany, type Company, user} from "$lib/server/db/schema";
 import {and, count, eq, exists} from "drizzle-orm";
-import type {CreateCompanyInput} from "$lib/types/company";
+import type {CreateCompanyInput} from "$lib/types/company.type";
 import {nanoid} from "nanoid";
+
+type CookieOptions = {
+    path: string;
+    httpOnly: boolean;
+    sameSite: 'strict' | 'lax' | 'none';
+    secure: boolean;
+    maxAge: number;
+};
+
+type CookieEvent = {
+    cookies: {
+        set: (name: string, value: string, options: CookieOptions) => void;
+    };
+};
 
 type CompanyWithRelations = Company & {
     userCompanies: (typeof userCompany.$inferSelect & {
@@ -227,6 +241,89 @@ export class CompanyService {
                 errorCode: "SERVER_ERROR",
                 message: "Erreur lors de la mise à jour du titre"
             }
+        }
+    }
+
+    static async updateSelectedCompany(companyId: string, userId: string, event?: CookieEvent): Promise<ServerResponse<CompanyWithRelations>> {
+        try {
+            if (!companyId?.trim() || !userId?.trim()) {
+                return {
+                    success: false,
+                    errorCode: "VALIDATION_ERROR",
+                    message: "ID de l'entreprise et ID utilisateur requis",
+                };
+            }
+
+            const company = await this.getCompanyByIdAndByUserId(companyId, userId);
+
+            if (!company.success || !company.data) {
+                return {
+                    success: false,
+                    errorCode: "VALIDATION_ERROR",
+                    message: "Entreprise introuvable ou accès non autorisé",
+                };
+            }
+
+            const cookieResponse = await this.setCookieSelectedCompany(companyId, userId, event);
+
+            if (!cookieResponse.success) {
+                return {
+                    success: false,
+                    errorCode: "SERVER_ERROR",
+                    message: "Erreur lors de la mise à jour de l'entreprise sélectionnée"
+                };
+            }
+
+            return {
+                success: true,
+                data: cookieResponse.data,
+                message: "Entreprise sélectionnée mise à jour avec succès"
+            };
+        } catch (error) {
+            console.error("Erreur lors de la mise à jour de l'entreprise sélectionnée:", error);
+            return {
+                success: false,
+                errorCode: "SERVER_ERROR",
+                message: "Erreur lors de la mise à jour de l'entreprise sélectionnée"
+            };
+        }
+    }
+
+    static async setCookieSelectedCompany(companyId: string, userId: string, event?: CookieEvent): Promise<ServerResponse<CompanyWithRelations>> {
+        try {
+            const company = await this.getCompanyByIdAndByUserId(companyId, userId);
+
+            if (!company.success || !company.data) {
+                return {
+                    success: false,
+                    errorCode: "VALIDATION_ERROR",
+                    message: "Entreprise introuvable ou accès non autorisé",
+                };
+            }
+
+            // Mettre à jour le cookie si l'événement est fourni
+            if (event) {
+                event.cookies.set('selectedCompany', JSON.stringify(company.data), {
+                    path: '/',
+                    httpOnly: true,
+                    sameSite: 'strict',
+                    secure: process.env.NODE_ENV === 'production',
+                    maxAge: 60 * 60 * 24 * 7 // 7 jours
+                });
+            }
+
+            return {
+                success: true,
+                data: company.data,
+                message: "Entreprise sélectionnée mise à jour avec succès"
+            };
+        } catch (error) {
+            console.error("Erreur lors de la mise à jour de l'entreprise sélectionnée:", error);
+            return {
+                success: false,
+                errorCode: "SERVER_ERROR",
+                message: "Erreur lors de la mise à jour de l'entreprise sélectionnée"
+            };
         }
     }
 }
