@@ -7,10 +7,14 @@ export const load: PageServerLoad = async (event) => {
 		throw redirect(302, '/login');
 	}
 
+	if (!event.locals.selectedCompany) {
+		throw redirect(302, '/settings');
+	}
+
 	const companiesCount = (await CompanyService.countCompaniesByUserId(event.locals.user.id));
 	const commandsCount = (await CommandService.countCommands());
-	const productsCount = (await ProductService.countProducts());
-	const categoriesCount = (await CategoryService.countCategoriesByUserId(event.locals.user.id));
+	const productsCount = (await ProductService.countProducts(event.locals.selectedCompany.id));
+	const categoriesCount = (await CategoryService.countCategoriesByCompanyId(event.locals.selectedCompany.id));
 
 	return {
 		productsCount: productsCount.success ? productsCount.data : "N/A",

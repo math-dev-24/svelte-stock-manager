@@ -10,9 +10,9 @@ import type {Category} from "$lib/server/db/schema";
 
 export class ProductService {
 
-    static async getProducts(): Promise<ServerResponse<Product[]>> {
+    static async getProducts(companyId: string): Promise<ServerResponse<Product[]>> {
         try {
-            const results = await db.select().from(table.product);
+            const results = await db.select().from(table.product).where(eq(table.product.companyId, companyId));
             
             const productsWithCategories = await Promise.all(
                 results.map(async (product) => {
@@ -57,9 +57,9 @@ export class ProductService {
         }
     }
 
-    static async countProducts(): Promise<ServerResponse<number>> {
+    static async countProducts(companyId: string): Promise<ServerResponse<number>> {
         try {
-            const results = await db.select({ count: count() }).from(table.product);
+            const results = await db.select({ count: count() }).from(table.product).where(eq(table.product.companyId, companyId));
             return {
                 success: true,
                 data: results[0].count,
@@ -90,9 +90,9 @@ export class ProductService {
         }
     }
 
-    static async createProduct(name: string, sku: string, description: string, minStock: string, userId: string): Promise<ServerResponse<Product>> {
+    static async createProduct(name: string, sku: string, description: string, minStock: string, companyId: string): Promise<ServerResponse<Product>> {
 
-        const productId = await this.addProduct(name, sku, description, minStock, userId);
+        const productId = await this.addProduct(name, sku, description, minStock, companyId);
 
         if (!productId) {
             return {
@@ -112,7 +112,7 @@ export class ProductService {
             };
         }
 
-        await LogService.createLog(product.data.userId, `Nouveau produit ajouté : ${product.data.name}`);
+        await LogService.createLog(product.data.companyId, `Nouveau produit ajouté : ${product.data.name}`);
 
         return {
             success: true,
@@ -133,7 +133,7 @@ export class ProductService {
                 };
             }
 
-            await LogService.createLog(updatedProduct.userId, `Produit mis à jour : ${updatedProduct.name} - ${updatedProduct.sku} par ${updatedProduct.userId}`);
+            await LogService.createLog(updatedProduct.companyId, `Produit mis à jour : ${updatedProduct.name} - ${updatedProduct.sku} par ${updatedProduct.companyId}`);
 
             return {
                 success: true,
@@ -166,7 +166,7 @@ export class ProductService {
         }
     }
 
-    private static async addProduct(name: string, sku: string, description: string, minStock: string, userId: string): Promise<string | null> {
+    private static async addProduct(name: string, sku: string, description: string, minStock: string, companyId: string): Promise<string | null> {
         const productId = nanoid();
 
         const product = {
@@ -176,7 +176,7 @@ export class ProductService {
             description: description,
             minStock: minStock,
             createdAt: new Date(),
-            userId: userId
+            companyId: companyId
         };
 
         try {

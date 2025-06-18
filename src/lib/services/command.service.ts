@@ -56,6 +56,7 @@ export class CommandService {
         }
     }
 
+
     static async createCommand(command: Command): Promise<ServerResponse<Command>> {
         try {
             const newCommand = await db.insert(table.command).values(command).returning();

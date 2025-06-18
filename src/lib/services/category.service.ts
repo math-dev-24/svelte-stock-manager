@@ -8,9 +8,9 @@ import { nanoid } from "nanoid";
 
 export class CategoryService {
 
-    static async getCategoriesByUserId(userId: string): Promise<ServerResponse<Category[]>> {
+    static async getCategoriesByCompanyId(companyId: string): Promise<ServerResponse<Category[]>> {
         try {
-            const categories = await db.select().from(table.category).where(eq(table.category.userId, userId));
+            const categories = await db.select().from(table.category).where(eq(table.category.companyId, companyId));
 
             return {
                 success: true,
@@ -42,9 +42,10 @@ export class CategoryService {
         }
     }
 
-    static async createCategory(name: string, userId: string): Promise<ServerResponse<Category>> {
+    static async createCategory(name: string, companyId: string): Promise<ServerResponse<Category>> {
         try {
-            const existingCategory = await db.select().from(table.category).where(eq(table.category.label, name));
+            const existingCategory = await db.select().from(table.category).where(and(eq(table.category.label, name), eq(table.category.companyId, companyId)));
+            
             if (existingCategory.length > 0) {
                 return {
                     success: false,
@@ -56,7 +57,7 @@ export class CategoryService {
             const category = await db.insert(table.category).values({
                 id: nanoid(),
                 label: name,
-                userId: userId,
+                companyId: companyId,
                 createdAt: new Date()
             }).returning();
 
@@ -64,7 +65,8 @@ export class CategoryService {
                 success: true,
                 data: category.at(0) as Category
             };
-        } catch {
+        } catch (error) {
+            console.error(error);
             return {
                 success: false,
                 errorCode: 'SERVER_ERROR',
@@ -73,11 +75,11 @@ export class CategoryService {
         }
     }
 
-    static async updateCategory(id: string, name: string, userId: string): Promise<ServerResponse<Category>> {
+    static async updateCategory(id: string, name: string, companyId: string): Promise<ServerResponse<Category>> {
         try {
             const category = await db.update(table.category).set({
                 label: name,
-                userId: userId,
+                companyId: companyId,
                 createdAt: new Date()
             }).where(eq(table.category.id, id)).returning();
 
@@ -95,10 +97,10 @@ export class CategoryService {
         }
     }
 
-    static async deleteCategory(id: string, userId: string): Promise<ServerResponse<Category>> {
+    static async deleteCategory(id: string, companyId: string): Promise<ServerResponse<Category>> {
         try {
             const category = await db.delete(table.category)
-            .where(and(eq(table.category.id, id), eq(table.category.userId, userId))).returning();
+            .where(and(eq(table.category.id, id), eq(table.category.companyId, companyId))).returning();
             if (category.length === 0) {
                 return {
                     success: false,
@@ -119,9 +121,9 @@ export class CategoryService {
         }
     }
 
-    static async countCategoriesByUserId(userId: string): Promise<ServerResponse<number>> {
+    static async countCategoriesByCompanyId(companyId: string): Promise<ServerResponse<number>> {
         try {
-            const categories = await db.select().from(table.category).where(eq(table.category.userId, userId));
+            const categories = await db.select().from(table.category).where(eq(table.category.companyId, companyId));
             return {
                 success: true,
                 data: categories.length,

@@ -5,13 +5,16 @@
     import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "$lib/components/ui/card";
     import { Label } from "$lib/components/ui/label";
     import { Alert, AlertDescription } from "$lib/components/ui/alert";
-    import { AlertTriangle } from "lucide-svelte";
-    
-    let { data } = $props();
+    import { AlertTriangle, Loader2 } from "lucide-svelte";
+    import { enhance } from '$app/forms';
+
+    let { data, form } = $props();
 
     const handleCancel = () => {
         goto('/categories');
     }
+
+    let inLoading = $state(false);
 </script>
 
 {#if data.mode === 'create'}
@@ -19,7 +22,18 @@
         <CardHeader>
             <CardTitle>Créer une catégorie</CardTitle>
         </CardHeader>
-        <form method="POST" action="?/create">
+        <form 
+            method="POST" 
+            action="?/create"
+            class="space-y-4"
+            use:enhance={() => {
+                inLoading = true;
+                return async ({update}) => {
+                    await update();
+                    inLoading = false;
+                }
+            }}
+        >
             <CardContent>
                 <div class="space-y-4">
                     <div class="space-y-2">
@@ -28,9 +42,21 @@
                     </div>
                 </div>
             </CardContent>
-            <CardFooter class="flex justify-end space-x-2">
-                <Button type="submit" variant="default">Créer</Button>
-                <Button type="button" variant="outline" on:click={handleCancel}>Annuler</Button>
+            <CardFooter class="grid grid-cols-2 gap-4s">
+                {#if form}
+                    <Alert variant="destructive" class="my-2 w-full col-span-2">
+                        <AlertTriangle class="h-4 w-4" />
+                        <AlertDescription>{form.error}</AlertDescription>
+                    </Alert>
+                {/if}
+                <Button type="submit" variant="default" class="mr-4" disabled={inLoading}>
+                    {#if inLoading}
+                        <Loader2 class="w-4 h-4 animate-spin" />
+                    {:else}
+                        Créer
+                    {/if}
+                </Button>
+                <Button type="button" variant="outline" on:click={handleCancel} class="ml-4">Annuler</Button>
             </CardFooter>
         </form>
     </Card>
@@ -39,7 +65,18 @@
         <CardHeader>
             <CardTitle>Modifier la catégorie</CardTitle>
         </CardHeader>
-        <form method="POST" action="?/update">
+        <form 
+            method="POST" 
+            action="?/update"
+            class="space-y-4"
+            use:enhance={() => {
+                inLoading = true;
+                return async ({update}) => {
+                    await update();
+                    inLoading = false;
+                }
+            }}
+        >
             <input type="hidden" name="id" value={data.category.id} />
             <CardContent>
                 <div class="space-y-4">
@@ -77,3 +114,4 @@
         </form>
     </Card>
 {/if}
+

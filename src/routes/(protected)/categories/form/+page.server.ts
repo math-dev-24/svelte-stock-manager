@@ -47,6 +47,10 @@ export const actions: Actions = {
 			return redirect(302, '/login');
 		}
 
+		if (!event.locals.selectedCompany) {
+			return redirect(302, '/settings');
+		}
+
 		const formData = await event.request.formData();
 		const name = formData.get('name') as string;
 
@@ -57,10 +61,10 @@ export const actions: Actions = {
 			};
 		}
 		
-		const createdResult = await CategoryService.createCategory(name, event.locals.user.id);
+		const createdResult = await CategoryService.createCategory(name, event.locals.selectedCompany.id);
 
 		if (createdResult.success) {
-			LogService.createLog(event.locals.user.id, `Nouvelle catégorie créée : ${name}`);
+			LogService.createLog(event.locals.selectedCompany.id, `Nouvelle catégorie créée : ${name}`);
 			return redirect(302, '/categories');
 		}
 
@@ -72,6 +76,10 @@ export const actions: Actions = {
 	update: async (event) => {
 		if (!event.locals.user) {
 			return redirect(302, '/login');
+		}
+
+		if (!event.locals.selectedCompany) {
+			return redirect(302, '/settings');
 		}
 
 		const formData = await event.request.formData();
@@ -91,7 +99,7 @@ export const actions: Actions = {
 			};
 		}
 		
-		const updatedResult = await CategoryService.updateCategory(id, name, event.locals.user.id);
+		const updatedResult = await CategoryService.updateCategory(id, name, event.locals.selectedCompany.id);
 
 
 		if (updatedResult.success) {
@@ -108,6 +116,10 @@ export const actions: Actions = {
 			return redirect(302, '/login');
 		}
 
+		if (!event.locals.selectedCompany) {
+			return redirect(302, '/settings');
+		}
+
 		const formData = await event.request.formData();
 		const id = formData.get('id') as string;
 
@@ -118,7 +130,7 @@ export const actions: Actions = {
 			};
 		}
 		
-		const deletedResult = await CategoryService.deleteCategory(id, event.locals.user.id);
+		const deletedResult = await CategoryService.deleteCategory(id, event.locals.selectedCompany.id);
 
 		if (deletedResult.success) {
 			LogService.createLog(event.locals.user.id, `Catégorie supprimée : ${deletedResult.data.label}`);

@@ -1,16 +1,16 @@
 import {numeric, pgTable, primaryKey, text, timestamp} from "drizzle-orm/pg-core";
 import {relations} from "drizzle-orm";
-import {user} from "./auth";
+import { company } from "./company";
 
 export const product = pgTable('product', {
     id: text('id').primaryKey(),
-    name: text('name').notNull().unique(),
-    sku: text('sku').notNull().unique(),
+    name: text('name').notNull(),
+    sku: text('sku').notNull(),
     description: text('description').notNull(),
     minStock: numeric('min_stock').notNull(),
-    userId: text('user_id')
+    companyId: text('company_id')
         .notNull()
-        .references(() => user.id),
+        .references(() => company.id),
     createdAt: timestamp('createdAt').notNull()
 });
 
@@ -29,7 +29,7 @@ export type Price = typeof price.$inferSelect;
 
 export const unit = pgTable('unit', {
     id: text('id').primaryKey(),
-    label: text('name').notNull().unique(),
+    label: text('name').notNull(),
     productId: text('product_id')
         .notNull()
         .references(() => product.id),
@@ -40,10 +40,11 @@ export type Unit = typeof unit.$inferSelect;
 
 export const category = pgTable('category', {
     id: text('id').primaryKey(),
-    label: text('label').notNull().unique(),
-    userId: text('user_id')
+    label: text('label').notNull(),
+    description: text('description'),
+    companyId: text('company_id')
         .notNull()
-        .references(() => user.id),
+        .references(() => company.id),
     createdAt: timestamp('createdAt').notNull()
 });
 

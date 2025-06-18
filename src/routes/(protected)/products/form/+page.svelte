@@ -6,21 +6,25 @@
     import { Input } from "$lib/components/ui/input";
     import { Textarea } from "$lib/components/ui/textarea";
     import { Label } from "$lib/components/ui/label";
-    import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "$lib/components/ui/select";
-
-    let { data }: PageProps = $props();
+    import { Alert, AlertDescription } from "$lib/components/ui/alert";
+    import { AlertTriangle, Loader2 } from "lucide-svelte";
+    import { enhance } from '$app/forms';
+    let { data, form }: PageProps = $props();
 
     const isUpdateMode = $derived(page.url.searchParams.get('type') === 'update' && data.product);
     const formTitle = $derived(isUpdateMode ? 'Modifier le produit' : 'Nouveau produit');
     const submitButtonText = $derived(isUpdateMode ? 'Mettre à jour' : 'Créer');
 
-    const defaultValues = $derived({
+    // État réactif pour les valeurs du formulaire
+    let formValues = $state({
         name: data.product?.name || '',
         sku: data.product?.sku || '',
         description: data.product?.description || '',
         minStock: data.product?.minStock || 0,
         categories: data.productCategories?.map(c => c.id) || []
     });
+
+    let inLoading = $state(false);
 </script>
 
 {#if data.mode === 'delete'}
@@ -38,10 +42,21 @@
                 class="w-full"
                 method="POST"
                 action="?/delete"
+                use:enhance={() => {
+                    inLoading = true;
+                    return async ({update}) => {
+                        await update();
+                        inLoading = false;
+                    }
+                }}
             >
                 <input type="hidden" name="id" id="id" value={data.product.id} />
-                <Button variant="destructive" type="submit" class="w-full">
-                    Supprimer
+                <Button variant="destructive" type="submit" class="w-full" disabled={inLoading}>
+                    {#if inLoading}
+                        <Loader2 class="w-4 h-4 animate-spin" />
+                    {:else}
+                        Supprimer
+                    {/if}
                 </Button>
             </form>
         </CardFooter>
@@ -56,9 +71,23 @@
                 class="space-y-6"
                 method="POST"
                 action={isUpdateMode ? '?/update' : '?/create'}
+                use:enhance={() => {
+                    inLoading = true;
+                    return async ({update}) => {
+                        await update();
+                        inLoading = false;
+                    }
+                }}
             >
                 {#if data.product}
                     <input type="hidden" name="id" id="id" value={data.product.id} />
+                {/if}
+
+                {#if form?.message}
+                    <Alert variant="destructive">
+                        <AlertTriangle class="h-4 w-4" />
+                        <AlertDescription>{form.message}</AlertDescription>
+                    </Alert>
                 {/if}
 
                 <div class="space-y-2">
@@ -68,7 +97,7 @@
                         id="name"
                         name="name"
                         required
-                        bind:value={defaultValues.name}
+                        bind:value={formValues.name}
                     />
                 </div>
 
@@ -79,7 +108,7 @@
                         id="sku"
                         name="sku"
                         required
-                        bind:value={defaultValues.sku}
+                        bind:value={formValues.sku}
                     />
                 </div>
 
@@ -89,7 +118,7 @@
                         id="description"
                         name="description"
                         required
-                        bind:value={defaultValues.description}
+                        bind:value={formValues.description}
                     />
                 </div>
 
@@ -100,31 +129,34 @@
                         id="minStock"
                         name="minStock"
                         required
-                        bind:value={defaultValues.minStock}
+                        bind:value={formValues.minStock}
                     />
                 </div>
 
                 <div class="space-y-2">
                     <Label for="categories">Catégories</Label>
-                    <Select
+                    <select
                         id="categories"
                         name="categories"
                         multiple
-                        bind:value={defaultValues.categories}
+                        bind:value={formValues.categories}
+                        class="border-input bg-background ring-offset-background min-h-[200px] focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                        <SelectTrigger>
-                            <SelectValue placeholder="Sélectionner des catégories" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {#each data.categories as category}
-                                <SelectItem value={category.id}>{category.label}</SelectItem>
-                            {/each}
-                        </SelectContent>
-                    </Select>
+                        {#each data.categories as category}
+                            <option value={category.id}>{category.label}</option>
+                        {/each}
+                    </select>
+                    <p class="text-sm text-muted-foreground">
+                        Maintenez Ctrl (ou Cmd sur Mac) pour sélectionner plusieurs catégories
+                    </p>
                 </div>
 
-                <Button type="submit" class="w-full">
-                    {submitButtonText}
+                <Button type="submit" class="w-full" disabled={inLoading}>
+                    {#if inLoading}
+                        <Loader2 class="w-4 h-4 animate-spin" />
+                    {:else}
+                        {submitButtonText}
+                    {/if}
                 </Button>
             </form>
         </CardContent>

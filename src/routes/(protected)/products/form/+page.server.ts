@@ -6,14 +6,18 @@ import { CategoryService } from "$lib/services";
 
 export const load: PageServerLoad = async (event) => {
 	if (!event.locals.user) {
-		throw redirect(302, '/login');
+		return redirect(302, '/login');
+	}
+
+	if (!event.locals.selectedCompany) {
+		return redirect(302, '/settings');
 	}
 
 	const paramsType = event.url.searchParams.get('type');
 	const paramsId = event.url.searchParams.get('id');
 
 	if (!paramsType) {
-		const categories = await CategoryService.getCategoriesByUserId(event.locals.user.id);
+		const categories = await CategoryService.getCategoriesByCompanyId(event.locals.selectedCompany.id);
 		return {
 			product: null,
 			categories: categories.success ? categories.data : []
@@ -23,20 +27,20 @@ export const load: PageServerLoad = async (event) => {
 	const validModes: string[] = ['update', 'delete'];
 
 	if (!validModes.includes(paramsType)) {
-		throw redirect(302, '/products');
+		return redirect(302, '/products');
 	}
 
 	if (!paramsId) {
-		throw redirect(302, '/products');
+		return redirect(302, '/products');
 	}
 
 	const [product, categories] = await Promise.all([
 		ProductService.getProductById(paramsId),
-		CategoryService.getCategoriesByUserId(event.locals.user.id)
+		CategoryService.getCategoriesByCompanyId(event.locals.selectedCompany.id)
 	]);
 
 	if (!product.success) {
-		throw redirect(302, '/products');
+		return redirect(302, '/products');
 	}
 
 	const productCategories = await ProductService.getProductCategories(paramsId);
@@ -52,7 +56,7 @@ export const load: PageServerLoad = async (event) => {
 export const actions: Actions = {
 	create: async (event) => {
 		if (!event.locals.user) {
-			throw redirect(302, '/login');
+			return redirect(302, '/login');
 		}
 
 		const formData = await event.request.formData();
@@ -76,7 +80,7 @@ export const actions: Actions = {
 			sku,
 			description,
 			minStock,
-			event.locals.user.id
+			event.locals.selectedCompany!.id
 		);
 
 		if (!response.success) {
@@ -96,12 +100,12 @@ export const actions: Actions = {
 		
 		FlashService.crud.created(event, 'Produit');
 
-		throw redirect(302, '/products');
+		return redirect(302, '/products');
 	},
 
 	update: async (event) => {
 		if (!event.locals.user) {
-			throw redirect(302, '/login');
+			return redirect(302, '/login');
 		}
 
 		const formData = await event.request.formData();
@@ -146,12 +150,12 @@ export const actions: Actions = {
 		// Message de succès
 		FlashService.crud.updated(event, 'Produit');
 
-		throw redirect(302, '/products');
+		return redirect(302, '/products');
 	},
 
 	delete: async (event) => {
 		if (!event.locals.user) {
-			throw redirect(302, '/login');
+			return redirect(302, '/login');
 		}
 
 		const formData = await event.request.formData();

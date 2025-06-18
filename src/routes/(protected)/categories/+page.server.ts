@@ -7,7 +7,11 @@ export const load: PageServerLoad = async (event) => {
 		throw redirect(302, '/login');
 	}
 
-	const categories = await CategoryService.getCategoriesByUserId(event.locals.user.id);
+	if (!event.locals.selectedCompany) {
+		throw redirect(302, '/settings');
+	}
+
+	const categories = await CategoryService.getCategoriesByCompanyId(event.locals.selectedCompany.id);
 
 	if (!categories.success) {
 		throw redirect(302, '/dashboard');

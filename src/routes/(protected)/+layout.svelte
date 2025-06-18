@@ -18,7 +18,6 @@
         Menu,
         X
     } from 'lucide-svelte';
-    import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "$lib/components/ui/select";
 
     let { children, data }: LayoutProps = $props();
 
