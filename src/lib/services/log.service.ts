@@ -7,9 +7,9 @@ import {nanoid} from "nanoid";
 
 
 export class LogService {
-    static async getLogsByUserId(userId: string): Promise<ServerResponse<Log[]>> {
+    static async getLogsByCompanyId(companyId: string): Promise<ServerResponse<Log[]>> {
         try {
-            const logs = await db.select().from(table.log).where(eq(table.log.userId, userId));
+            const logs = await db.select().from(table.log).where(eq(table.log.companyId, companyId));
             return {
                 success: true,
                 data: logs
@@ -23,11 +23,11 @@ export class LogService {
         }
     }
 
-    static async createLog(userId: string, message: string): Promise<ServerResponse<Log>> {
+    static async createLog(companyId: string, message: string): Promise<ServerResponse<Log>> {
 
         const tmp_log: Log = {
             id: nanoid(),
-            userId,
+            companyId,
             message,
             createdAt: new Date().toISOString(),
         };

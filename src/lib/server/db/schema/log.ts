@@ -1,14 +1,14 @@
 import {pgTable, text} from "drizzle-orm/pg-core";
-import {user} from "./auth";
+import {company} from "./company";
 
 
 export const log = pgTable('log', {
     id: text('id').primaryKey(),
     message: text('message').notNull(),
     createdAt: text('createdAt').notNull(),
-    userId: text('user_id')
+    companyId: text('company_id')
         .notNull()
-        .references(() => user.id),
+        .references(() => company.id),
 });
 
 export type Log = typeof log.$inferSelect;

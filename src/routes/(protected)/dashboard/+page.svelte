@@ -3,7 +3,10 @@
     import { Card, CardHeader, CardTitle, CardContent } from "$lib/components/ui/card";
     import { HomeIcon, PlusIcon, BoxIcon } from "lucide-svelte";
     import { Button } from "$lib/components/ui/button";
-    
+    import DonutChart from "$lib/components/protected/donuts-chart/donut-chart-simple.svelte";
+    import type { CategoryCount } from "$lib/types/category.type";
+  import { char } from 'drizzle-orm/mysql-core';
+
     let { data }: PageProps = $props();
 
     const stats = [
@@ -19,6 +22,24 @@
         { type: 'alert', message: 'Stock faible: Samsung Galaxy S24', time: 'Il y a 1h' },
         { type: 'stock', message: 'Réapprovisionnement MacBook Pro', time: 'Il y a 2h' },
     ];
+
+    // Préparer les données pour le donut chart
+    const chartData = $derived(
+        data.allCategoriesCount?.map((category: CategoryCount, index: number) => ({
+            label: category.categoryName,
+            value: category.count,
+            color: [
+                '#3B82F6', // blue-500
+                '#10B981', // emerald-500
+                '#F59E0B', // amber-500
+                '#EF4444', // red-500
+                '#8B5CF6', // violet-500
+                '#06B6D4', // cyan-500
+                '#84CC16', // lime-500
+                '#F97316', // orange-500
+            ][index % 8]
+        })) || []
+    );
 
 </script>
 
@@ -63,7 +84,7 @@
 <!-- Contenu principal du dashboard -->
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
     <!-- Graphique des ventes (placeholder) -->
-    <div class="lg:col-span-2">
+    <div class="lg:col-span-2 space-y-4">
         <div class="card">
             <div class="card-header">
                 <h3 class="text-lg font-semibold text-slate-800">Évolution du stock</h3>
@@ -73,6 +94,20 @@
                 <div class="h-64 bg-slate-50 rounded-lg flex items-center justify-center">
                     <p class="text-slate-500">📊 Graphique des tendances de stock</p>
                 </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header">
+                <h3 class="text-lg font-semibold text-slate-800">Répartition par catégories</h3>
+            </div>
+            <div class="card-body">
+                {#if chartData.length > 0}
+                    <DonutChart data={chartData} />
+                {:else}
+                    <div class="h-64 bg-slate-50 rounded-lg flex items-center justify-center">
+                        <p class="text-slate-500">Aucune catégorie disponible</p>
+                    </div>
+                {/if}
             </div>
         </div>
     </div>

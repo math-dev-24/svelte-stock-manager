@@ -3,6 +3,7 @@ import {fail, redirect} from "@sveltejs/kit";
 import { ProductService } from "$lib/services";
 import { FlashService } from "$lib/services";
 import { CategoryService } from "$lib/services";
+import { LogService } from "$lib/services";
 
 export const load: PageServerLoad = async (event) => {
 	if (!event.locals.user) {
@@ -59,6 +60,10 @@ export const actions: Actions = {
 			return redirect(302, '/login');
 		}
 
+		if (!event.locals.selectedCompany) {
+			return redirect(302, '/settings');
+		}
+
 		const formData = await event.request.formData();
 		const name = formData.get('name');
 		const sku = formData.get('sku');
@@ -97,7 +102,9 @@ export const actions: Actions = {
 				categoryIds.map(id => id.toString())
 			);
 		}
-		
+
+		await LogService.createLog(event.locals.selectedCompany.id, `Produit ${response.data.name} créé par ${event.locals.user.username}`);
+
 		FlashService.crud.created(event, 'Produit');
 
 		return redirect(302, '/products');
@@ -106,6 +113,10 @@ export const actions: Actions = {
 	update: async (event) => {
 		if (!event.locals.user) {
 			return redirect(302, '/login');
+		}
+
+		if (!event.locals.selectedCompany) {
+			return redirect(302, '/settings');
 		}
 
 		const formData = await event.request.formData();
@@ -147,15 +158,21 @@ export const actions: Actions = {
 			categoryIds.map(id => id.toString())
 		);
 
+		await LogService.createLog(event.locals.selectedCompany.id, `Produit ${response.data.name} modifié par ${event.locals.user.username}`);
+
 		// Message de succès
 		FlashService.crud.updated(event, 'Produit');
 
 		return redirect(302, '/products');
-	},
+	},	
 
 	delete: async (event) => {
 		if (!event.locals.user) {
 			return redirect(302, '/login');
+		}
+
+		if (!event.locals.selectedCompany) {
+			return redirect(302, '/settings');
 		}
 
 		const formData = await event.request.formData();
@@ -173,7 +190,12 @@ export const actions: Actions = {
 
 		try {
 			await ProductService.deleteProduct(id);
+			
+			await LogService.createLog(event.locals.selectedCompany.id, `Produit ${productName} supprimé par ${event.locals.user.username}`);
+
 			FlashService.crud.deleted(event, productName);
+
+			return redirect(302, '/products');
 		} catch {
 			FlashService.crud.deleteError(event, productName);
 			return fail(400, {
@@ -181,7 +203,5 @@ export const actions: Actions = {
 				type: 'error'
 			});
 		}
-
-		throw redirect(302, '/products');
 	}
 };

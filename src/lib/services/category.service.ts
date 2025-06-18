@@ -2,8 +2,9 @@ import type {ServerResponse} from "$lib/types/server.type";
 import type {Category} from "$lib/server/db/schema";
 import {db} from "$lib/server/db";
 import * as table from "$lib/server/db/schema";
-import {and, eq} from "drizzle-orm";
+import {and, eq, inArray} from "drizzle-orm";
 import { nanoid } from "nanoid";
+import type { CategoryCount } from "$lib/types/category.type";
 
 
 export class CategoryService {
@@ -134,6 +135,39 @@ export class CategoryService {
                 success: false,
                 errorCode: 'SERVER_ERROR',
                 message: 'An error occurred during get categories count'
+            };
+        }
+    }
+
+    static async getAllCategoriesCount(companyId: string): Promise<ServerResponse<CategoryCount[]>> {
+        try {
+            const categories = await db.select().from(table.category)
+                .where(eq(table.category.companyId, companyId));
+
+            const products = await db.select().from(table.productCategory)
+                .where(inArray(table.productCategory.categoryId, categories.map(category => category.id)));
+
+            const categoriesCount: CategoryCount[] = [];
+
+            for (const category of categories) {
+                const categoryProducts = products.filter(product => product.categoryId === category.id);
+                const categoryCount = categoryProducts.length;
+                categoriesCount.push({
+                    count: categoryCount,
+                    categoryName: category.label,
+                    id: category.id
+                });
+            }
+
+            return {
+                success: true,
+                data: categoriesCount
+            };
+        } catch {
+            return {
+                success: false,
+                errorCode: 'SERVER_ERROR',
+                message: 'An error occurred during get all categories count'
             };
         }
     }
