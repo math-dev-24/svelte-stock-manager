@@ -7,7 +7,7 @@
 </script>
 
 <section class="container mx-auto px-4 py-8 rounded border border-slate-200 bg-white shadow-sm">
-    <h1 class="mb-2">listes des catégories :</h1>
+    <h1>listes des catégories :</h1>
 
     {#if data.categories.length === 0}
         <p class="text-slate-600 mb-2">

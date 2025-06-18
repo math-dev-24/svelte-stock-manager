@@ -8,14 +8,14 @@
 </script>
 
 <section class="container mx-auto px-4 py-8 rounded border border-slate-200 bg-white shadow-sm">
-    <h1 class="mb-2">Liste des commandes :</h1>
+    <h1>Liste des commandes :</h1>
 
     {#if data.commands.length === 0}
         <p class="text-slate-600 mb-2">
             Vous n'avez pas encore ajouté de commande.
         </p>
         <Button
-            class="btn btn-primary w-full flex items-center gap-2 w-1/4 mx-auto"
+            class="btn btn-primary w-full flex items-center gap-2"
             href="/commands/form"
         >
             <PlusIcon class="w-4 h-4" />
