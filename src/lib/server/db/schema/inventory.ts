@@ -58,10 +58,20 @@ export type CommandLine = typeof commandLine.$inferSelect;
 export const status = pgTable('status', {
     id: text('id').primaryKey(),
     label: text('label').notNull().unique(),
+    companyId: text('company_id')
+        .notNull()
+        .references(() => company.id),
     createdAt: text('createdAt').notNull()
 })
 
 export type Status = typeof status.$inferSelect;
+
+export const statusRelations = relations(status, ({ one }) => ({
+    company: one(company, {
+        fields: [status.companyId],
+        references: [company.id],
+    })
+}));
 
 export const inventory = pgTable('inventory', {
     id: text('id').primaryKey(),
