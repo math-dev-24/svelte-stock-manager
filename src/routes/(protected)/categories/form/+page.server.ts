@@ -64,7 +64,7 @@ export const actions: Actions = {
 		const createdResult = await CategoryService.createCategory(name, event.locals.selectedCompany.id);
 
 		if (createdResult.success) {
-			LogService.createLog(event.locals.selectedCompany.id, `Nouvelle catégorie créée : ${name}`);
+			LogService.createLog(event.locals.selectedCompany.id, `Nouvelle catégorie créée : ${name} par ${event.locals.user.username}`);
 			return redirect(302, '/categories');
 		}
 

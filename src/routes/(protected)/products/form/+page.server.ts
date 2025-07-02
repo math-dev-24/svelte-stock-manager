@@ -159,8 +159,7 @@ export const actions: Actions = {
 		);
 
 		await LogService.createLog(event.locals.selectedCompany.id, `Produit ${response.data.name} modifié par ${event.locals.user.username}`);
-
-		// Message de succès
+		
 		FlashService.crud.updated(event, 'Produit');
 
 		return redirect(302, '/products');
