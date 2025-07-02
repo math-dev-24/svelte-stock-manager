@@ -3,6 +3,17 @@ import {product} from "./product";
 import {company} from "./company";
 import {relations} from "drizzle-orm";
 
+export const status = pgTable('status', {
+    id: text('id').primaryKey(),
+    label: text('label').notNull().unique(),
+    companyId: text('company_id')
+        .notNull()
+        .references(() => company.id),
+    createdAt: text('createdAt').notNull()
+});
+
+export type Status = typeof status.$inferSelect;
+
 export const command = pgTable('command', {
     id: text('id').primaryKey(),
     reference: text('reference').notNull().unique(),
@@ -14,19 +25,7 @@ export const command = pgTable('command', {
         .notNull()
         .references(() => company.id),
     createdAt: text('createdAt').notNull()
-})
-
-export const commandRelations = relations(command, ({ many, one }) => ({
-    commandLines: many(commandLine),
-    status: one(status, {
-        fields: [command.statusId],
-        references: [status.id],
-    }),
-    company: one(company, {
-        fields: [command.companyId],
-        references: [company.id],
-    })
-}));
+});
 
 export type Command = typeof command.$inferSelect;
 
@@ -40,7 +39,29 @@ export const commandLine = pgTable('commandLine', {
         .references(() => product.id),
     quantity: text('quantity').notNull(),
     createdAt: text('createdAt').notNull()
-})
+});
+
+export type CommandLine = typeof commandLine.$inferSelect;
+
+export const statusRelations = relations(status, ({ one, many }) => ({
+    company: one(company, {
+        fields: [status.companyId],
+        references: [company.id],
+    }),
+    commands: many(command)
+}));
+
+export const commandRelations = relations(command, ({ many, one }) => ({
+    commandLines: many(commandLine),
+    status: one(status, {
+        fields: [command.statusId],
+        references: [status.id],
+    }),
+    company: one(company, {
+        fields: [command.companyId],
+        references: [company.id],
+    })
+}));
 
 export const commandLineRelations = relations(commandLine, ({ one }) => ({
     command: one(command, {
@@ -50,26 +71,6 @@ export const commandLineRelations = relations(commandLine, ({ one }) => ({
     product: one(product, {
         fields: [commandLine.productId],
         references: [product.id],
-    })
-}));
-
-export type CommandLine = typeof commandLine.$inferSelect;
-
-export const status = pgTable('status', {
-    id: text('id').primaryKey(),
-    label: text('label').notNull().unique(),
-    companyId: text('company_id')
-        .notNull()
-        .references(() => company.id),
-    createdAt: text('createdAt').notNull()
-})
-
-export type Status = typeof status.$inferSelect;
-
-export const statusRelations = relations(status, ({ one }) => ({
-    company: one(company, {
-        fields: [status.companyId],
-        references: [company.id],
     })
 }));
 
@@ -87,3 +88,14 @@ export const inventory = pgTable('inventory', {
 });
 
 export type Inventory = typeof inventory.$inferSelect;
+
+export const inventoryRelations = relations(inventory, ({ one }) => ({
+    product: one(product, {
+        fields: [inventory.productId],
+        references: [product.id],
+    }),
+    company: one(company, {
+        fields: [inventory.companyId],
+        references: [company.id],
+    })
+}));

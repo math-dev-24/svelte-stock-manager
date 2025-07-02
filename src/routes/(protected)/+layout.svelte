@@ -35,6 +35,7 @@
         { href: '/commands', icon: ClipboardList, label: 'Commandes' },
         { href: '/suppliers', icon: Building2, label: 'Fournisseurs' },
         { href: '/categories', icon: FolderTree, label: 'Catégories' },
+        { href: '/status', icon: ClipboardList, label: 'Statuts' },
     ];
 
     const settingsItems = [

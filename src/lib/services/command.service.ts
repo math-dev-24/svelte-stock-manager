@@ -114,6 +114,7 @@ export class CommandService {
 
     static async getStatusesByCompanyId(companyId: string): Promise<ServerResponse<Status[]>> {
         try {
+
             const statuses = await db.query.status.findMany({
                 where: eq(table.status.companyId, companyId)
             });
@@ -134,6 +135,87 @@ export class CommandService {
                 success: false,
                 errorCode: 'SERVER_ERROR',
                 message: 'An error occurred during get statuses'
+            };
+        }
+    }
+
+    static async getStatusById(id: string): Promise<ServerResponse<Status>> {
+        try {
+            const status = await db.query.status.findFirst({
+                where: eq(table.status.id, id)
+            });
+
+            if (!status) {
+                return {
+                    success: false,
+                    errorCode: 'NOT_FOUND',
+                    message: 'Statut non trouvé'
+                };
+            }
+
+            return {
+                success: true,
+                data: status
+            };
+        } catch {
+            return {
+                success: false,
+                errorCode: 'SERVER_ERROR',
+                message: 'An error occurred during get status'
+            };
+        }
+    }
+
+    static async createStatus(status: Status): Promise<ServerResponse<Status>> {
+        try {
+            const newStatus = await db.insert(table.status).values(status).returning();
+
+            return {
+                success: true,
+                data: newStatus[0],
+                message: 'Statut créé avec succès'
+            };
+        } catch {
+            return {
+                success: false,
+                errorCode: 'SERVER_ERROR',
+                message: 'An error occurred during create status'
+            };
+        }
+    }
+
+    static async updateStatus(status: Status): Promise<ServerResponse<Status>> {
+        try {
+            const updatedStatus = await db.update(table.status).set(status).where(eq(table.status.id, status.id)).returning();
+
+            return {
+                success: true,
+                data: updatedStatus[0],
+                message: 'Statut mis à jour avec succès'
+            };
+        } catch {
+            return {
+                success: false,
+                errorCode: 'SERVER_ERROR',
+                message: 'An error occurred during update status'
+            };
+        }
+    }
+
+    static async deleteStatus(id: string): Promise<ServerResponse<Status>> {
+        try {
+            const deletedStatus = await db.delete(table.status).where(eq(table.status.id, id)).returning();
+
+        return {
+            success: true,
+            data: deletedStatus[0],
+            message: 'Statut supprimé avec succès'
+        };
+        } catch {
+            return {
+                success: false,
+                errorCode: 'SERVER_ERROR',
+                message: 'An error occurred during delete status'
             };
         }
     }
